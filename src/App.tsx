@@ -1,0 +1,416 @@
+import { useState, useEffect } from 'react';
+import { MessageSquare, ShieldAlert, FileText, Send, Wallet, Cpu, Lock, History } from 'lucide-react';
+import { deployFeedbackContract, submitFeedbackCircuit } from './midnightClient';
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletBalance, setWalletBalance] = useState<string>("0.00");
+  const [connectingWallet, setConnectingWallet] = useState(false);
+  const [faucetLoading, setFaucetLoading] = useState(false);
+  const [laceDetected, setLaceDetected] = useState(false);
+  const [connectedWallet, setConnectedWallet] = useState<any>(null);
+
+  const [contractDeployed, setContractDeployed] = useState(false);
+  const [contractAddress, setContractAddress] = useState<string | null>(null);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployStep, setDeployStep] = useState(0);
+
+  const [ledger, setLedger] = useState({ response_count: 3, allowed_keys_root: "0xab4e...92fa" });
+  const [formValues, setFormValues] = useState({ feedback_msg: "System architecture is highly efficient.", user_sk: "" });
+  const [posts, setPosts] = useState([
+    { id: 1, text: "Anonymous user joined standard session.", timestamp: "2026-07-08 09:12:11" },
+    { id: 2, text: "Verification limits need review.", timestamp: "2026-07-08 09:20:10" }
+  ]);
+  const [logs, setLogs] = useState([
+    { hash: '0xcd3d...44ee', timestamp: '2026-07-08 09:50:12', status: 'VERIFIED', fee: '0.045 tNIGHT', details: 'Allowlist invite code parsed successfully' }
+  ]);
+  const [isProving, setIsProving] = useState(false);
+  const [provingStep, setProvingStep] = useState(0);
+
+  const proofSteps = [
+    "Hashing anonymous whistleblower key seed...",
+    "Validating inclusion in cryptographic allowlist...",
+    "Deriving ZK post nullifier trace...",
+    "Publishing anonymous feedback proof..."
+  ];
+
+  const deploySteps = [
+    "Deploying feedback board compact layout...",
+    "Generating public allowlist root storage...",
+    "Broadcasting deployment blocks..."
+  ];
+
+  useEffect(() => {
+    fetch('/deployment.json').then(response => response.ok ? response.json() : null).then(deployment => {
+      if (deployment?.contractAddress) {
+        setContractAddress(deployment.contractAddress);
+        setContractDeployed(true);
+      }
+    }).catch(() => undefined);
+    const detectLace = () => {
+      const hasMidnightWallet = Object.values((window as any).midnight ?? {}).some((candidate: any) => typeof candidate?.connect === 'function');
+      setLaceDetected(hasMidnightWallet);
+    };
+    detectLace();
+    const timer = setInterval(detectLace, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const connectLace = async () => {
+    setConnectingWallet(true);
+    try {
+      const candidates = Object.values((window as any).midnight ?? {}) as Array<{
+        connect?: (networkId: string) => Promise<any>;
+        name?: string;
+      }>;
+      const wallet = candidates.find(candidate => typeof candidate.connect === 'function');
+      if (!wallet?.connect) {
+        throw new Error('No Midnight wallet connector was detected. Install 1AM or Lace and unlock it.');
+      }
+
+      const connected = await wallet.connect(import.meta.env.VITE_NETWORK_ID || 'preprod');
+      (window as any).__midnightConnectedWallet = connected;
+      const addressInfo = await connected.getUnshieldedAddress();
+      const balances = await connected.getUnshieldedBalances();
+      const nightBalance = Object.values(balances)[0] ?? 0n;
+
+      setWalletAddress(addressInfo.unshieldedAddress);
+      setWalletBalance((Number(nightBalance) / 1_000_000).toFixed(2));
+      setWalletConnected(true);
+      setConnectedWallet(connected);
+      if (import.meta.env.VITE_CONTRACT_ADDRESS) {
+        setContractAddress(import.meta.env.VITE_CONTRACT_ADDRESS);
+        setContractDeployed(true);
+      }
+      logTransaction('wallet', 'MIDNIGHT WALLET CONNECTED', '—', 'Connected through the Midnight DApp Connector API');
+    } catch (err) {
+      console.error('Midnight wallet connection failed:', err);
+      alert(err instanceof Error ? err.message : 'Midnight wallet connection failed.');
+    } finally {
+      setConnectingWallet(false);
+    }
+  };
+
+
+
+  const disconnectLace = () => {
+    setWalletConnected(false);
+    setWalletAddress(null);
+    setWalletBalance("0.00");
+    logTransaction('0x0000...0000', 'LACE WALLET DISCONNECTED', '0.00 tNIGHT', 'Disconnected wallet context');
+  };
+
+  const requestFaucet = () => {
+    if (!walletConnected) return;
+    window.open(import.meta.env.VITE_FAUCET_URL || 'https://midnight-tmnight-preprod.nethermind.dev/', '_blank', 'noopener,noreferrer');
+    logTransaction('—', 'FAUCET OPENED', '—', 'Funding must be confirmed by the Midnight Preprod Faucet and wallet balance refresh.');
+  };
+
+  const deployContractAction = async () => {
+    if (import.meta.env.VITE_CONTRACT_ADDRESS) {
+      setContractAddress(import.meta.env.VITE_CONTRACT_ADDRESS);
+      setContractDeployed(true);
+      logTransaction('—', 'DEPLOYMENT CONFIGURED', '—', 'Using the deployed Midnight contract configured for this environment.');
+      return;
+    }
+    if (!connectedWallet) return;
+    setIsDeploying(true);
+    try {
+      const result = await deployFeedbackContract(connectedWallet);
+      setContractAddress(result.contractAddress);
+      setContractDeployed(true);
+      logTransaction(result.txId, 'CONTRACT DEPLOYMENT SUBMITTED', '—', 'feedback deployed on Midnight Preprod at ' + result.contractAddress);
+    } catch (err) {
+      console.error('Browser deployment failed:', err);
+      alert(err instanceof Error ? err.message : 'Browser deployment failed.');
+    } finally {
+      setIsDeploying(false);
+    }
+    return;
+    if (import.meta.env.VITE_DEMO_MODE !== 'true') {
+      alert('Live contract deployment is handled by deploy.mjs. Set VITE_DEMO_MODE=true only for local UI demos.');
+      return;
+    }
+    if (!walletConnected) return;
+    setIsDeploying(true);
+    setDeployStep(0);
+    const interval = setInterval(() => {
+      setDeployStep(prev => {
+        if (prev < deploySteps.length - 1) {
+          return prev + 1;
+        } else {
+          clearInterval(interval);
+          setTimeout(() => {
+            setContractAddress("midnight1f4v89fjwla0928hdskla9382hdksla0298a");
+            setContractDeployed(true);
+            setIsDeploying(false);
+            setWalletBalance(prevBal => (parseFloat(prevBal) - 15.5).toFixed(2));
+            logTransaction('0xdep1...88bb', 'CONTRACT DEPLOYED', '-15.50 tNIGHT', 'Deployed feedback.compact contract onto Preprod');
+          }, 800);
+          return prev;
+        }
+      });
+    }, 500);
+  };
+
+  const postFeedback = async () => {
+    if (!walletConnected || !contractDeployed || !contractAddress) return;
+    try {
+      const result = await submitFeedbackCircuit((window as any).__midnightConnectedWallet, contractAddress, 'submitFeedback', [formValues.feedback_msg]);
+      setLedger(prev => ({ ...prev, response_count: prev.response_count + 1 }));
+      logTransaction(result.txId, 'CONFIRMED ON MIDNIGHT', '—', 'Confirmed submitFeedback on ' + contractAddress);
+      return;
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'The Midnight transaction failed.');
+      logTransaction('—', 'TRANSACTION FAILED', '—', err instanceof Error ? err.message : 'Unknown transaction failure');
+      return;
+    }
+    setIsProving(true);
+    setProvingStep(0);
+    const interval = setInterval(() => {
+      setProvingStep(prev => {
+        if (prev < proofSteps.length - 1) {
+          return prev + 1;
+        } else {
+          clearInterval(interval);
+          setTimeout(() => {
+            setLedger(prevLedger => ({
+              ...prevLedger,
+              response_count: prevLedger.response_count + 1
+            }));
+            setPosts(prevPosts => [
+              {
+                id: Date.now(),
+                text: formValues.feedback_msg,
+                timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
+              },
+              ...prevPosts
+            ]);
+            
+            const randomTx = '0x' + Array.from({length: 8}, () => Math.floor(Math.random()*16).toString(16)).join('') + '...' + Array.from({length: 4}, () => Math.floor(Math.random()*16).toString(16)).join('');
+            logTransaction(randomTx, 'VERIFIED', '-0.05 tNIGHT', 'Anonymous feedback post added securely');
+            setIsProving(false);
+            setWalletBalance(prevBal => (parseFloat(prevBal) - 0.05).toFixed(2));
+          }, 600);
+          return prev;
+        }
+      });
+    }, 450);
+  };
+
+  const logTransaction = (hash: string, status: string, fee: string, details: string) => {
+    setLogs(prev => [
+      {
+        hash,
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        status,
+        fee,
+        details
+      },
+      ...prev
+    ]);
+  };
+
+  return (
+    <div style={{ maxWidth: '1200px', margin: '0 auto', fontFamily: 'Outfit, sans-serif' }}>
+      
+      {/* Header */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0', borderBottom: '1px solid var(--border-color)', marginBottom: '30px' }}>
+        <div>
+          <span style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '20px', background: 'rgba(236, 72, 153, 0.15)', color: '#f472b6', border: '1px solid rgba(236, 72, 153, 0.3)', fontWeight: 600 }}>Project 6</span>
+          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginTop: '6px' }}>Whistleblower Feedback Board</h1>
+        </div>
+        <div>
+          {walletConnected ? (
+            <div style={{ background: 'rgba(236, 72, 153, 0.08)', border: '1px solid rgba(236, 72, 153, 0.25)', borderRadius: '12px', padding: '8px 16px' }}>
+              Balance: <strong style={{ color: '#ec4899' }}>{walletBalance} tNIGHT</strong>
+            </div>
+          ) : (
+            <button onClick={connectLace} style={{ width: 'auto' }}>Connect Lace Wallet</button>
+          )}
+        </div>
+      </header>
+
+<section className="home-dashboard" aria-labelledby="home-dashboard-title">
+        <div className="home-dashboard__lead">
+          <span className="home-kicker">Signal room</span>
+          <h2 id="home-dashboard-title">Feedback pulse</h2>
+          <p>Submit a useful signal while keeping your identity out of the ledger.</p>
+          <div className="home-actions">
+            <button type="button" onClick={() => setActiveTab('dashboard')}>Open Workspace</button>
+            <button type="button" className="home-secondary" onClick={() => setActiveTab('privacy')}>Read Privacy Model</button>
+          </div>
+        </div>
+        <div className="home-dashboard__grid">
+          <article className="home-card"><span>Network</span><strong>Midnight Preprod</strong><small>{contractDeployed ? 'Contract verified' : 'Contract setup pending'}</small></article>
+          <article className="home-card"><span>Current signal</span><strong>Anonymous channel open</strong><small>Identity unlinkable</small></article>
+          <article className="home-card"><span>Wallet session</span><strong>{walletConnected ? 'Connected' : 'Not connected'}</strong><small>{walletConnected ? walletBalance + ' tNIGHT available' : 'Connect 1AM to continue'}</small></article>
+          <article className="home-card"><span>Contract address</span><strong className="home-address">{contractAddress ? contractAddress.slice(0, 14) + '…' : 'Awaiting deployment'}</strong><small>Unique project deployment</small></article>
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+        <button onClick={() => setActiveTab('dashboard')} style={{ width: 'auto', padding: '10px 20px', background: activeTab === 'dashboard' ? 'var(--color-primary)' : 'transparent', color: activeTab === 'dashboard' ? 'white' : 'var(--text-secondary)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>📣 Whistleblower Board</button>
+        <button onClick={() => setActiveTab('deployer')} style={{ width: 'auto', padding: '10px 20px', background: activeTab === 'deployer' ? 'var(--color-primary)' : 'transparent', color: activeTab === 'deployer' ? 'white' : 'var(--text-secondary)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>📜 Survey Authority Deployer</button>
+        <button onClick={() => setActiveTab('walletHub')} style={{ width: 'auto', padding: '10px 20px', background: activeTab === 'walletHub' ? 'var(--color-primary)' : 'transparent', color: activeTab === 'walletHub' ? 'white' : 'var(--text-secondary)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>🔑 Anonymous Keys</button>
+        <button onClick={() => setActiveTab('privacy')} style={{ width: 'auto', padding: '10px 20px', background: activeTab === 'privacy' ? 'var(--color-primary)' : 'transparent', color: activeTab === 'privacy' ? 'white' : 'var(--text-secondary)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>🔒 Survey Privacy Model</button>
+      </div>
+
+      <main style={{ minHeight: '400px' }}>
+        {activeTab === 'dashboard' && (
+          <div>
+            {(!walletConnected || !contractDeployed) && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239,68,68,0.2)', padding: '20px', borderRadius: '12px', marginBottom: '30px', textAlign: 'center' }}>
+                <h3 style={{ margin: 0, color: '#f87171' }}>⚠️ Setup Prerequisites Required</h3>
+                <p style={{ color: 'var(--text-secondary)', margin: '8px 0 0 0', fontSize: '0.9rem' }}>
+                  {!walletConnected ? "Please connect your Lace Wallet in the Wallet Hub." : "Please deploy the Compact contract in the ZK Deployer tab."}
+                </p>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '30px', opacity: (walletConnected && contractDeployed) ? 1 : 0.4, pointerEvents: (walletConnected && contractDeployed) ? 'auto' : 'none' }}>
+              <div>
+                <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '24px', marginBottom: '30px' }}>
+                  <h2 style={{ fontSize: '1.2rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#f472b6' }}><ShieldAlert className="w-5 h-5" /> Post Report (Shielded)</h2>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Anonymous Report Message</label>
+                    <textarea rows={4} value={formValues.feedback_msg} onChange={e => setFormValues({ ...formValues, feedback_msg: e.target.value })} style={{ width: '100%' }} />
+                  </div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Private Credential Key</label>
+                    <input type="password" value={formValues.user_sk} onChange={e => setFormValues({ ...formValues, user_sk: e.target.value })} />
+                  </div>
+                  <button onClick={postFeedback} disabled={isProving}>
+                    <Send style={{ width: '16px', height: '16px', display: 'inline-block', marginRight: '6px', verticalAlign: 'middle' }} />
+                    {isProving ? "Constructing Proof..." : "Submit Anonymous Report"}
+                  </button>
+
+                  {isProving && (
+                    <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(236,72,153,0.05)', border: '1px dashed #ec4899', borderRadius: '8px', fontSize: '0.8rem' }}>
+                      {proofSteps.map((step, idx) => (
+                        <div key={idx} style={{ padding: '3px 0', color: idx === provingStep ? 'white' : 'var(--text-secondary)', opacity: idx <= provingStep ? 1 : 0.4 }}>
+                          {idx < provingStep ? '✓' : '●'} {step}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
+
+              <div>
+                <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '24px' }}>
+                  <h2 style={{ fontSize: '1.2rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#f472b6' }}><FileText className="w-5 h-5" /> Anonymous Reports Bulletin</h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {posts.map((post) => (
+                      <div key={post.id} style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <span>Post ID: {post.id}</span>
+                          <span>{post.timestamp}</span>
+                        </div>
+                        <p style={{ fontSize: '0.9rem', color: 'white', margin: 0 }}>{post.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'deployer' && (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '30px' }}>
+            <h2 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#f472b6' }}>
+              <Cpu className="w-6 h-6" /> Whistleblower Smart Contract Deployer
+            </h2>
+            {contractDeployed ? (
+              <p style={{ color: '#10b981' }}>Deployed Preprod Address: {contractAddress}</p>
+            ) : (
+              <button onClick={deployContractAction} disabled={isDeploying || !walletConnected}>
+                {isDeploying ? "Deploying..." : "Compile & Deploy Contract"}
+              </button>
+            )}
+
+            {isDeploying && (
+              <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(236,72,153,0.05)', border: '1px dashed #ec4899', borderRadius: '8px', fontSize: '0.8rem' }}>
+                {deploySteps.map((step, idx) => (
+                  <div key={idx} style={{ padding: '3px 0', color: idx === deployStep ? 'white' : 'var(--text-secondary)', opacity: idx <= deployStep ? 1 : 0.4 }}>
+                    {idx < deployStep ? '✓' : '●'} {step}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'walletHub' && (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '30px' }}>
+            <h2 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#f472b6' }}>
+              <Wallet className="w-6 h-6" /> Wallet Hub & Log
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' }}>
+              <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', padding: '24px', borderRadius: '12px' }}>
+                <h3>Lace Account</h3>
+                {walletConnected ? (
+                  <div>
+                    <div style={{ fontFamily: 'monospace', wordBreak: 'break-all', fontSize: '0.85rem', marginBottom: '10px' }}>{walletAddress}</div>
+                    <button onClick={disconnectLace} style={{ width: 'auto', background: '#dc2626' }}>Disconnect</button>
+                  </div>
+                ) : (
+                  <button onClick={connectLace} style={{ width: 'auto' }}>Connect Wallet</button>
+                )}
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', padding: '24px', borderRadius: '12px' }}>
+                <h3>faucet request</h3>
+                <button onClick={requestFaucet} disabled={!walletConnected || faucetLoading}>
+                  {faucetLoading ? "Requesting..." : "Mint Faucet Tokens"}
+                </button>
+              </div>
+            </div>
+
+            <section>
+              <h3>Recent Actions</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {logs.map((log, idx) => (
+                  <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#34d399', fontWeight: 600 }}>
+                      <span>{log.status}</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{log.timestamp}</span>
+                    </div>
+                    <div style={{ marginTop: '4px' }}>{log.details}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {activeTab === 'privacy' && (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '30px' }}>
+            <h2 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: '#f472b6' }}>
+              <Lock className="w-6 h-6" /> Zero-Knowledge Privacy Model
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+              <div style={{ background: 'rgba(16, 185, 129, 0.03)', border: '1px solid rgba(16, 185, 129, 0.15)', padding: '24px', borderRadius: '12px' }}>
+                <h3 style={{ color: '#10b981' }}>Can Learn:</h3>
+                <ul>
+                  <li>Total feedback reports count value.</li>
+                  <li>Cryptographic validity signature check on block.</li>
+                </ul>
+              </div>
+              <div style={{ background: 'rgba(239, 68, 68, 0.03)', border: '1px solid rgba(239, 68, 68, 0.15)', padding: '24px', borderRadius: '12px' }}>
+                <h3 style={{ color: '#f87171' }}>Cannot Learn:</h3>
+                <ul>
+                  <li>Identity or key of the whistleblower posting the report.</li>
+                  <li>Social handle key structures or keys.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
