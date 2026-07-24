@@ -1,0 +1,6 @@
+{
+  "cleanUrls": true,
+  "alias": "neel-jpou.vercel.app",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
+}
