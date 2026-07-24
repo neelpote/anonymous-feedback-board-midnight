@@ -1,0 +1,51 @@
+pragma language_version >= 0.22;
+
+import CompactStandardLibrary;
+
+export ledger survey_id: Bytes<32>;
+export ledger whitelisted_participants: Map<Bytes<32>, Boolean>;
+export ledger nullifiers: Map<Bytes<32>, Boolean>;
+export ledger responses: Map<Uint<32>, Opaque<"string">>;
+export ledger response_count: Counter;
+export ledger admin: Bytes<32>;
+
+constructor(id: Bytes<32>, admin_pk: Bytes<32>) {
+  survey_id = disclose(id);
+  admin = disclose(admin_pk);
+  response_count.increment(0);
+}
+
+witness localSecretKey(): Bytes<32>;
+
+export circuit registerParticipant(participant_pk: Bytes<32>): [] {
+  assert(disclose(publicKey(localSecretKey())) == admin, "Only admin can whitelist participants");
+  whitelisted_participants.insert(disclose(participant_pk), true);
+}
+
+export circuit submitFeedback(feedback_text: Opaque<"string">): [] {
+  const sk = localSecretKey();
+  const pk = publicKey(sk);
+
+  // Verify participant is whitelisted
+  assert(whitelisted_participants.member(disclose(pk)), "Participant is not whitelisted");
+
+  // Verify nullifier to prevent double submission
+  const nullifier = computeNullifier(sk, survey_id);
+  assert(!nullifiers.member(disclose(nullifier)), "Participant has already submitted feedback");
+
+  // Record nullifier
+  nullifiers.insert(disclose(nullifier), true);
+
+  // Log feedback text to public ledger map
+  const index = response_count as Field as Uint<32>;
+  responses.insert(index, disclose(feedback_text));
+  response_count.increment(1);
+}
+
+export circuit publicKey(sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "feedback:pk:"), sk]);
+}
+
+export circuit computeNullifier(sk: Bytes<32>, id: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([pad(32, "feedback:nullifier:"), id, sk]);
+}
