@@ -1,5 +1,7 @@
 # Whistleblower Feedback Board
 
+![Frontend CI](https://github.com/neelpote/anonymous-feedback-board-midnight/actions/workflows/frontend-ci.yml/badge.svg?branch=main) ![Contract CI](https://github.com/neelpote/anonymous-feedback-board-midnight/actions/workflows/contract-ci.yml/badge.svg?branch=main)
+
 An anonymous signal room for collecting useful feedback while minimizing identity linkage.
 
 ## The signal-room model
@@ -53,3 +55,6 @@ Frontend CI checks the browser build. Contract CI installs Compact, recompiles t
 
 Demo: [watch the anonymous feedback walkthrough](https://drive.google.com/file/d/1GYvdeIK6ooAInjiN_tNwDEs7yEZoJm_X/view?usp=sharing).
 
+## Verification
+
+Privacy is the product feature: the participant identity and message linkage remain private, while campaign rules and aggregate activity stay auditable. Run `npm test`, `npm run compile`, and `npm run build`; the five contract scenarios are documented in [TESTING.md](./TESTING.md), the product scope is in [PROPOSAL.md](./PROPOSAL.md), and both CI workflows run on every push and pull request.
