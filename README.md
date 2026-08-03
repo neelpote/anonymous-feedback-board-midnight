@@ -24,14 +24,18 @@ The application should be treated as a privacy-preserving demonstration: operati
 ## Live contract
 
 ```text
-Network: Midnight Preprod
+Network: Midnight Preview
 Contract: feedback
-Address: 8ef846d84ce3e4eed7257f0d9af4e43bec832fbc07b1a9fec87857f475a8cc85
-Deployment transaction: e1c1fca76ff43a9c713448bb635b33b2a7b845349b4dab8dfc404dfe6ce14667
-Verification: Confirmed by the Midnight Preprod indexer
+Address: 04401376cd7990f0c475277eea164c5fbd413dac6a2fd335cf20d7fe4f6aca05
+Deployment transaction: 00a666de6562e8c82d2ddaca2826e6550806eb99b9b1b58cfebfa5b3b9cf967e1c
+Deployment account: mn_addr_preview1hrmn47akzun0cl2p996e2zuc2am9782kjw6vwnf8dgjzx5sytpsqgve64n
+Confirmation time: 2026-08-03T18:58:27.555Z
+Verification: Confirmed by the Midnight Preview indexer
 ```
 
 ## Run and test
+
+Reporter-flow test funds are available from the [Midnight Preview faucet](https://faucet.preview.midnight.network/).
 
 ```bash
 npm install
