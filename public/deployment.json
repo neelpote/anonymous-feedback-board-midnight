@@ -1,0 +1,9 @@
+{
+  "network": "preview",
+  "contract": "feedback",
+  "contractAddress": "04401376cd7990f0c475277eea164c5fbd413dac6a2fd335cf20d7fe4f6aca05",
+  "transactionHash": "00a666de6562e8c82d2ddaca2826e6550806eb99b9b1b58cfebfa5b3b9cf967e1c",
+  "deployer": "mn_addr_preview1hrmn47akzun0cl2p996e2zuc2am9782kjw6vwnf8dgjzx5sytpsqgve64n",
+  "deployedAt": "2026-08-03T18:58:27.555Z",
+  "verifiedBy": "Midnight Preview indexer"
+}
