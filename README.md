@@ -66,3 +66,7 @@ Demo: [watch the anonymous feedback walkthrough](https://drive.google.com/file/d
 ## Verification
 
 Privacy is the product feature: the participant identity and message linkage remain private, while campaign rules and aggregate activity stay auditable. Run `npm test`, `npm run compile`, and `npm run build`; the five contract scenarios are documented in [TESTING.md](./TESTING.md), the product scope is in [PROPOSAL.md](./PROPOSAL.md), and both CI workflows run on every push and pull request.
+
+## Signal protection
+
+Before operating Anonymous Feedback Board, read the independent [security model](SECURITY.md) and [operations runbook](OPERATIONS.md). Runtime configuration is fail-closed and its executable checks live in [src/test/runtime-config.test.ts](src/test/runtime-config.test.ts).
