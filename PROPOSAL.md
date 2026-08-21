@@ -1,5 +1,9 @@
 # Product Proposal: Whistleblower Feedback Board
 
+**Category:** Consumer focus  
+**Signal-room owner:** `neelpote`  
+**Current milestone:** End-to-end reviewable MVP
+
 ## Problem
 
 Organizations need useful feedback without forcing a reporter to create a permanent identity trail.
@@ -25,4 +29,3 @@ Survey identity, response count, and operational state may be public. Submitter 
 - A valid submission increments the response count.
 - Duplicate submissions fail.
 - Test data remains synthetic.
-

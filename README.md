@@ -4,6 +4,10 @@
 
 An anonymous signal room for collecting useful feedback while minimizing identity linkage.
 
+## Evidence, without the identity trail
+
+The [proposal](./PROPOSAL.md) states the reporting model. The [feedback suite](./src/test/feedback.test.ts) covers authorization, one-time submission, and rejection behavior. [TESTING.md](./TESTING.md) makes the checks reproducible; [deployment.json](./deployment.json) anchors them to Preview.
+
 ## The signal-room model
 
 The application gives an operator a controlled intake board rather than a public comment feed. A participant can register privately, submit feedback once, and see aggregate activity. The dashboard surfaces the submission pulse, anonymity boundary, wallet connection, contract status, and confirmed transaction state.
