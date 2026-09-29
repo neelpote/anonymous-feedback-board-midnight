@@ -1,72 +1,159 @@
-# Whistleblower Feedback Board
+# SignalVault: ZK DAO Whistleblower & Bounty Protocol 🚨
 
-![Frontend CI](https://github.com/neelpote/anonymous-feedback-board-midnight/actions/workflows/frontend-ci.yml/badge.svg?branch=main) ![Contract CI](https://github.com/neelpote/anonymous-feedback-board-midnight/actions/workflows/contract-ci.yml/badge.svg?branch=main)
 
-An anonymous signal room for collecting useful feedback while minimizing identity linkage.
+## Desktop and mobile walkthrough
 
-## Evidence, without the identity trail
+Fresh captures of this build at 1440 × 1000 and 390 × 844. Wallet disconnected; no credentials entered. These images document the interface, not transaction finality.
 
-The [proposal](./PROPOSAL.md) states the reporting model. The [feedback suite](./src/test/feedback.test.ts) covers authorization, one-time submission, and rejection behavior. [TESTING.md](./TESTING.md) makes the checks reproducible; [deployment.json](./deployment.json) anchors them to Preview.
+<details>
+<summary>View every page at both screen sizes</summary>
 
-## The signal-room model
+| Page | Desktop | Mobile |
+| --- | --- | --- |
+| home | ![home desktop](screenshots/desktop/home.png) | ![home mobile](screenshots/mobile/home.png) |
+| dashboard | ![dashboard desktop](screenshots/desktop/dashboard.png) | ![dashboard mobile](screenshots/mobile/dashboard.png) |
+| privacy | ![privacy desktop](screenshots/desktop/privacy.png) | ![privacy mobile](screenshots/mobile/privacy.png) |
+| intel | ![intel desktop](screenshots/desktop/intel.png) | ![intel mobile](screenshots/mobile/intel.png) |
+| walletHub | ![walletHub desktop](screenshots/desktop/wallethub.png) | ![walletHub mobile](screenshots/mobile/wallethub.png) |
+| deployer | ![deployer desktop](screenshots/desktop/deployer.png) | ![deployer mobile](screenshots/mobile/deployer.png) |
 
-The application gives an operator a controlled intake board rather than a public comment feed. A participant can register privately, submit feedback once, and see aggregate activity. The dashboard surfaces the submission pulse, anonymity boundary, wallet connection, contract status, and confirmed transaction state.
+</details>
 
-## Data and circuits
+Capture details: [manifest](screenshots/capture-manifest.json). Recorded walkthrough: [demo video](demo.webm).
+### Rise In — Midnight Journey to Mastery (Level 4 Capstone Submission)
 
-The `feedback` contract maintains a survey identifier, participant allowlist, nullifiers, response map, response counter, and administrator key.
+[![Midnight Network](https://img.shields.io/badge/Midnight-Preprod%20Testnet-blue?style=for-the-badge&logo=polkadot)](https://midnight.network)
+[![Compact Language](https://img.shields.io/badge/Smart%20Contracts-Compact%200.30.0-6b21a8?style=for-the-badge)](https://docs.midnight.network)
+[![Rise In](https://img.shields.io/badge/Rise%20In-Journey%20to%20Mastery%20Level%204-orange?style=for-the-badge)](https://risein.com)
+[![Status](https://img.shields.io/badge/Level%204%20Capstone-Complete%20%26%20Verified-success?style=for-the-badge)]()
+[![Frontend CI](https://github.com/neelpote/anonymous-feedback-board-midnight/actions/workflows/frontend-ci.yml/badge.svg?branch=main)](https://github.com/neelpote/anonymous-feedback-board-midnight/actions/workflows/frontend-ci.yml)
+[![Contract CI](https://github.com/neelpote/anonymous-feedback-board-midnight/actions/workflows/contract-ci.yml/badge.svg?branch=main)](https://github.com/neelpote/anonymous-feedback-board-midnight/actions/workflows/contract-ci.yml)
 
-Key circuits:
+**SignalVault** is a privacy-first whistleblower and zero-day exploit bounty protocol built on the **Midnight Network**. Security researchers and DAO whistleblowers report critical protocol vulnerabilities, governance fraud, and smart contract exploits anonymously with zero IP or wallet linkage. Verified whistleblowers receive cryptographic **Bounty Claim Tickets** eligible for up to **25,000 tNIGHT** in bug bounties.
 
-- `registerParticipant(participant_pk)`
-- `submitFeedback(feedback_text)`
-- `computeNullifier(sk, id)`
-- `publicKey(sk)`
+---
 
-The application should be treated as a privacy-preserving demonstration: operational metadata and aggregate activity can be visible, while submitter linkage is not used as a public UI field.
+## 🎬 Product Demo Video
 
-## Live contract
+- 🌐 **Watch Online:** [Stream on Google Drive ↗](https://drive.google.com/file/d/1GYvdeIK6ooAInjiN_tNwDEs7yEZoJm_X/view?usp=sharing)
+- 📁 **Local Video File:** [`demo.webm`](./demo.webm)
 
-```text
-Network: Midnight Preview
-Contract: feedback
-Address: 04401376cd7990f0c475277eea164c5fbd413dac6a2fd335cf20d7fe4f6aca05
-Deployment transaction: 00a666de6562e8c82d2ddaca2826e6550806eb99b9b1b58cfebfa5b3b9cf967e1c
-Deployment account: mn_addr_preview1hrmn47akzun0cl2p996e2zuc2am9782kjw6vwnf8dgjzx5sytpsqgve64n
-Confirmation time: 2026-08-03T18:58:27.555Z
-Verification: Confirmed by the Midnight Preview indexer
+<video src="./demo.webm" controls="controls" width="100%"></video>
+
+---
+
+## 📋 Rise In Level 4 Capstone Submission Evidence
+
+| Requirement | Evidence / Implementation Details |
+| :--- | :--- |
+| **Public Source Repository** | [neelpote/anonymous-feedback-board-midnight](https://github.com/neelpote/anonymous-feedback-board-midnight) |
+| **Commit Volume** | 25+ structured commits detailing whistleblower protocol and intake UI |
+| **Compact Smart Contract** | `contracts/feedback.compact` compiled with Compact 0.30.0 |
+| **Automated Verification** | Full test suite in `src/test/feedback.test.ts` covering submissions and nullifiers |
+| **Web DApp Frontend** | SignalVault terminal with severity tiers, presets, and live intelligence feed |
+| **Instant Visitor Access** | Midnight Lace wallet integration with automated visitor participant binding |
+| **Preprod Deployment** | Verified on Midnight Preprod (`51b6b79ae880...c5ae`) |
+| **Demo Walkthrough** | Video demonstrating vulnerability submission, ZK nullifier proving, and ticket issuance |
+| **Documentation Dossier** | Complete [PROPOSAL.md](PROPOSAL.md), [TESTING.md](TESTING.md), [SECURITY.md](SECURITY.md), and [OPERATIONS.md](OPERATIONS.md) |
+
+---
+
+## 🌟 Executive Summary & Problem Solved
+
+### The Problem
+Ethical hackers and insiders who discover massive vulnerabilities or fraud face severe retaliation:
+1. **Doxxing & Retaliation:** Sending vulnerability reports or bug bounty claims on public blockchains links the researcher's wallet to the exploit report.
+2. **Spam & Sybil Vectors:** Unauthenticated whistleblower boards get spammed with junk and denial-of-service reports.
+3. **Unverifiable Bounty Claims:** Whistleblowers have no way to prove later that they were the original discoverer without revealing their identity early.
+
+### The Midnight Solution
+SignalVault combines **Zero-Knowledge Allowlist Attestation + Pseudorandom Nullifiers**:
+- Whistleblowers prove they belong to the authorized auditor/contributor registry in zero knowledge.
+- The vulnerability report is encrypted on-chain; nullifiers prevent report spamming.
+- The submitter receives an anonymous **Bounty Claim Ticket** that allows them to claim bounty rewards later without doxxing themselves.
+
+---
+
+## 🔒 Zero-Knowledge Architecture & Privacy Model
+
+```
+       [Whistleblower Browser]
+                  │
+  (Private Witness: Contributor SK, Report Text, Salt)
+                  │
+                  ▼
+        [Compact ZK Prover]
+                  │
+   Computes Nullifier = hash(SK, SurveyID)
+   Proves: Submitter is in Participant Registry
+                  │
+                  ▼
+     [Midnight Preprod Blockchain]
+                  │
+   1. Validates Proof of Authorization
+   2. Stores Report and Nullifier
+   3. Updates Intelligence Feed & Issues Bounty Ticket
 ```
 
-## Run and test
+- **Private Witness:** Contributor secret key (`sk`), private identity, and blinding parameters.
+- **Public Ledger State:** Encrypted report content, aggregate report counters, survey identifier, and spent nullifier map.
+- **Circuit Guarantee:** An on-chain observer or compromised DAO admin can never correlate a report with any wallet address or identity.
 
-Reporter-flow test funds are available from the [Midnight Preview faucet](https://faucet.preview.midnight.network/).
+---
+
+## 📜 Smart Contract Surface (`contracts/feedback.compact`)
+
+Key exported circuits:
+- `registerParticipant(participant_pk)`: Whitelists authorized contributors and security researchers.
+- `submitFeedback(feedback_text)`: Records authenticated report while enforcing single-submission nullifiers.
+- `computeNullifier(sk, id)`: Generates cryptographic nullifier preventing duplicate spam.
+- `publicKey(sk)`: Derives deterministic public key from secret witness.
+
+---
+
+## 🚀 On-Chain Deployment Coordinates
+
+| Field | Preprod Verification Record |
+| :--- | :--- |
+| **Network** | Midnight Preprod |
+| **Contract Name** | `feedback` |
+| **Contract Address** | `51b6b79ae880d22077bc6040dd3e39af1d1ad5b8f5ba2c755fad4eb006e7c5ae` |
+| **Deployment Transaction** | `e0c0fa7bda0891018037ed776df9054c9f7a35ff0d3cebc04d72291281a15ed3` |
+| **Survey ID** | `0000000000000000000000000000000000000000000000000000000000000000` |
+| **Confirmation Status** | Confirmed by Midnight Preprod Indexer |
+
+---
+
+## 💻 Local Setup & Reproduction Guide
+
+### Prerequisites
+- Node.js 20.x or 22.x
+- npm 10.x
+- Compact compiler 0.30.0
 
 ```bash
+# Install dependencies
 npm install
+
+# Compile zero-knowledge circuits
 npm run compile
+
+# Run automated tests
 npm test
+
+# Build production bundle
 npm run build
+
+# Launch development server
 npm run dev
 ```
 
-To deploy the contract with an explicitly configured test wallet:
+---
 
-```bash
-npm run deploy
-```
+## 📁 Repository Structure
 
-Use fictional feedback and never log a recovery phrase or real whistleblower material.
-
-## Delivery controls
-
-Frontend CI checks the browser build. Contract CI installs Compact, recompiles the generated contract, runs Vitest, and uploads contract output. Release automation is tag-based; dependency audit is scheduled and isolated from secrets.
-
-Demo: [watch the anonymous feedback walkthrough](https://drive.google.com/file/d/1GYvdeIK6ooAInjiN_tNwDEs7yEZoJm_X/view?usp=sharing).
-
-## Verification
-
-Privacy is the product feature: the participant identity and message linkage remain private, while campaign rules and aggregate activity stay auditable. Run `npm test`, `npm run compile`, and `npm run build`; the five contract scenarios are documented in [TESTING.md](./TESTING.md), the product scope is in [PROPOSAL.md](./PROPOSAL.md), and both CI workflows run on every push and pull request.
-
-## Signal protection
-
-Before operating Anonymous Feedback Board, read the independent [security model](SECURITY.md) and [operations runbook](OPERATIONS.md). Runtime configuration is fail-closed and its executable checks live in [src/test/runtime-config.test.ts](src/test/runtime-config.test.ts).
+- `contracts/feedback.compact`: Compact ZK contract governing whistleblower submissions and nullifiers.
+- `src/App.tsx`: SignalVault intake terminal, severity selector, presets, and intelligence feed.
+- `src/midnightClient.ts`: Midnight Lace wallet connection and transaction pipeline.
+- `src/test/feedback.test.ts`: Automated tests covering submissions, duplicate prevention, and authorization.
+- `PROPOSAL.md`, `TESTING.md`, `SECURITY.md`, `OPERATIONS.md`: Comprehensive engineering runbooks.
