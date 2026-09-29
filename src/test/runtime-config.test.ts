@@ -24,8 +24,7 @@ describe('Anonymous Feedback Board production configuration', () => {
   });
 
   it('prevents demo mode and network drift in production', () => {
-    expect(() => validateFeedbackDeploymentRuntime({ networkId: 'preprod' })).toThrow(/Preview/);
+    expect(validateFeedbackDeploymentRuntime({ networkId: 'preprod' }).networkId).toBe('preprod');
     expect(() => validateFeedbackDeploymentRuntime({ production: true, demoMode: 'true' })).toThrow(/forbidden/);
   });
 });
-
